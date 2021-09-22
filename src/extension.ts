@@ -4,46 +4,60 @@ interface Theme {
 	id: any,
 	label: any,
 	uiTheme: any,
-	path: any,
+	path: any
+}
+
+interface MyQuickPickItem extends vscode.QuickPickItem {
+	label: string,
+	path: string
 }
 
 export function activate(context: vscode.ExtensionContext) {
 	let themes = vscode.extensions.all.filter(
 		ext => ext.packageJSON.categories && ext.packageJSON.categories.includes("Themes")
 	);
-	// let themesQuickPick: any[];
-	// themes.forEach(
-	// 	themeArr => themeArr.packageJSON.contributes.themes.forEach(
-	// 		(theme: Theme) => themesQuickPick.push(theme.label)
-	// 	)
-	// );
+	console.log(themes);
 
 	let singleItalics = vscode.commands.registerCommand('remove-italics.removeSingleItalics', async () => {
 		let theme = vscode.window.showQuickPick(
-			getQuickPick('theme'), { placeHolder: "Select Color Theme" }
+			getQuickPick('themes'), { placeHolder: "Select Color Theme" }
 		);
-		// removeItalics(await theme);
+		// console.log(await theme);
+		// removeItalics(getTheme(await theme));
 	});
 
 	let multipleItalics = vscode.commands.registerCommand('remove-italics.removeMultipleItalics', async () => {
-		let themes = vscode.window.showQuickPick(
-			getQuickPick('extensions'), { placeHolder: "Select Extension" }
+		let extension = vscode.window.showQuickPick(
+			getQuickPick('ext'), { placeHolder: "Select Extension" }
 		);
-		// await themes.forEach((theme: Theme) => {
-		// 	removeItalics(theme);
-		// });
+		// console.log(await extension);
+		// let themes = getExtension(await extension);
+		// if (themes !== undefined) {
+		// 	themes.forEach((theme: any) => {
+		// 		removeItalics(getTheme(theme));
+		// 	});
+		// }
 	});
 
 	function getQuickPick(type: string) {
-		let quickPick: any[] = [];
+		let quickPick: Array<MyQuickPickItem> = [];
 		themes.forEach(themeArr => {
-			type === 'extensions' 
-			? quickPick.push(themeArr.packageJSON.displayName) 
-			: themeArr.packageJSON.contributes.themes.forEach((theme: Theme) => {
-				quickPick.push(theme.label);
-			}); 
+			if (type === 'ext') {
+				quickPick.push({
+					label: themeArr.packageJSON.displayName,
+					path: themeArr.extensionPath,
+				});
+			} else if (type === 'themes') {
+				let extPath = themeArr.extensionPath;
+				themeArr.packageJSON.contributes.themes.forEach((theme: Theme) => {
+					quickPick.push({
+						label: theme.label,
+						path: extPath + theme.path,
+					});
+				});
+			}
 		});
-		return quickPick || null;
+		return quickPick;
 	}
 
 	context.subscriptions.push(singleItalics);
@@ -52,8 +66,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() { }
 
+// function getExtension(par: any) {
+// 	let arr: Array<Theme> = [];
+// 	return arr;
+// }
 
+// function getTheme(par: any) {
+// 	let theme: Theme;
+// 	return theme.empty();
+// }
 
-function removeItalics(theme: Theme) {
-	let path = theme.path;
-}
+// function removeItalics(theme: Theme) {
+// 	let path = theme.path;
+// }
