@@ -10,14 +10,19 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:remove-italics.removeItalics"
+    "onCommand:remove-italics.removeSingleItalics",
+    "onCommand:remove-italics.removeMultipleItalics"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "remove-italics.removeItalics",
-        "title": "Remove Italics"
+        "command": "remove-italics.removeSingleItalics",
+        "title": "Remove Italics: single theme"
+      },
+      {
+        "command": "remove-italics.removeMultipleItalics",
+        "title": "Remove Italics: all themes in extension"
       }
     ]
   },
