@@ -10,14 +10,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:remove-italics.helloWorld"
+    "onCommand:remove-italics.removeItalics"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "remove-italics.helloWorld",
-        "title": "Hello World"
+        "command": "remove-italics.removeItalics",
+        "title": "Remove Italics"
       }
     ]
   },
