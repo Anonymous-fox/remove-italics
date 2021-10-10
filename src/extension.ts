@@ -22,6 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 			getQuickPick('themes'), { placeHolder: "Select Color Theme" }
 		).then(async (value) => {
 			let content = await vscode.workspace.fs.readFile(value!.uri);
+			console.log(content);
 			removeItalics(content.toString());
 		});
 	});
@@ -30,7 +31,9 @@ export function activate(context: vscode.ExtensionContext) {
 		let extension = vscode.window.showQuickPick(
 			getQuickPick('ext'), { placeHolder: "Select Extension" }
 		).then(async (value) => {
-			let directory = await vscode.workspace.fs.readDirectory(value!.uri);
+			let uri = getThemesDirUri(value!);
+			console.log(await uri);
+			// let directory = await vscode.workspace.fs.readDirectory(value!.uri);
 			// console.log(directory);
 			// directory.forEach(async (file) => {
 			// 	let content = await vscode.workspace.fs.readFile(vscode.Uri.file(file));
@@ -52,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
 				themeArr.packageJSON.contributes.themes.forEach((theme: Theme) => {
 					quickPick.push({
 						label: theme.label,
-						uri: vscode.Uri.file(extPath + theme.path),
+						uri: vscode.Uri.file(extPath + theme.path.slice(1)),
 					});
 				});
 			}
@@ -66,5 +69,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() { }
 
+async function getThemesDirUri(theme: ThemeItem) {
+	let contents = await vscode.workspace.fs.readDirectory(theme.uri);
+	contents.forEach((arr) => {
+		if (arr[0] === "themes") {
+			return vscode.Uri.file(theme.uri + "themes");
+		} else if (arr[0] === "theme") {
+			return vscode.Uri.file(theme.uri + "theme");
+		}
+	});
+	return undefined;
+}
+
 function removeItalics(content: string) {
+	console.log(content);
 }
