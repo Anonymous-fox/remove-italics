@@ -1,16 +1,6 @@
 import * as vscode from 'vscode';
+import { Theme, ThemeItem } from './interfaces';
 
-interface Theme {
-	id: any,
-	label: any,
-	uiTheme: any,
-	path: any
-}
-
-interface ThemeItem extends vscode.QuickPickItem {
-	label: string,
-	uri: vscode.Uri
-}
 
 export function activate(context: vscode.ExtensionContext) {
 	let themes = vscode.extensions.all.filter(
@@ -22,7 +12,6 @@ export function activate(context: vscode.ExtensionContext) {
 			getQuickPick('themes'), { placeHolder: "Select Color Theme" }
 		).then(async (value) => {
 			let content = await vscode.workspace.fs.readFile(value!.uri);
-			console.log(content);
 			removeItalics(content.toString());
 		});
 	});
@@ -31,14 +20,13 @@ export function activate(context: vscode.ExtensionContext) {
 		let extension = vscode.window.showQuickPick(
 			getQuickPick('ext'), { placeHolder: "Select Extension" }
 		).then(async (value) => {
-			let uri = getThemesDirUri(value!);
-			console.log(await uri);
-			// let directory = await vscode.workspace.fs.readDirectory(value!.uri);
-			// console.log(directory);
-			// directory.forEach(async (file) => {
-			// 	let content = await vscode.workspace.fs.readFile(vscode.Uri.file(file));
-			// 	removeItalics(content.toString());
-			// });
+			let parentDirName = await getParentDirName(value!);
+			let themes = await vscode.workspace.fs.readDirectory(vscode.Uri.joinPath(value!.uri, parentDirName));
+			themes.forEach(async theme => {
+				let themeUri = vscode.Uri.joinPath(value!.uri, parentDirName, theme[0]);
+				let content = await vscode.workspace.fs.readFile(themeUri);
+				removeItalics(content.toString());
+			});
 		});
 	});
 
@@ -69,18 +57,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() { }
 
-async function getThemesDirUri(theme: ThemeItem) {
-	let contents = await vscode.workspace.fs.readDirectory(theme.uri);
-	contents.forEach((arr) => {
-		if (arr[0] === "themes") {
-			return vscode.Uri.file(theme.uri + "themes");
-		} else if (arr[0] === "theme") {
-			return vscode.Uri.file(theme.uri + "theme");
-		}
-	});
-	return undefined;
+async function getParentDirName(theme: ThemeItem) {
+	let dir = vscode.workspace.fs.readDirectory(theme.uri);
+	let parentDir = (await dir).find(theme => (theme[0] === "themes" || theme[0] === "theme") && theme[1] === 2);
+
+	return `/${parentDir![0]}/`;
 }
 
 function removeItalics(content: string) {
-	console.log(content);
+	console.log(content); //TODO: change JSON, create and save new file
 }
