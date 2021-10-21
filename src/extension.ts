@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Theme, ThemeItem } from './interfaces';
+import { Theme, ThemeItem, ThemeJSON } from './interfaces';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
 			getQuickPick('themes'), { placeHolder: "Select Color Theme" }
 		).then(async (value) => {
 			let content = await vscode.workspace.fs.readFile(value!.uri);
-			removeItalics(content.toString());
+			let modified = modifyTheme(content);
 		});
 	});
 
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 			themes.forEach(async theme => {
 				let themeUri = vscode.Uri.joinPath(value!.uri, parentDirName, theme[0]);
 				let content = await vscode.workspace.fs.readFile(themeUri);
-				removeItalics(content.toString());
+				let modified = modifyTheme(content);
 			});
 		});
 	});
@@ -64,6 +64,17 @@ async function getParentDirName(theme: ThemeItem) {
 	return `/${parentDir![0]}/`;
 }
 
+function modifyTheme(themeFile: Uint8Array) {
+	let themeFileStr = themeFile.toString();
+	let modified = changeName(JSON.parse(removeItalics(themeFileStr)));
+	return modified;
+}
+
 function removeItalics(content: string) {
-	console.log(content); //TODO: change JSON, create and save new file
+	return content.split('"italic"').join('""');
+}
+
+function changeName(content: ThemeJSON) {
+	content.name += " - removed italics";
+	return JSON.stringify(content);
 }
