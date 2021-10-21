@@ -9,7 +9,8 @@ export interface Theme {
 
 export interface ThemeItem extends vscode.QuickPickItem {
 	label: string,
-	uri: vscode.Uri
+	uri: vscode.Uri,
+	extUri?: vscode.Uri,
 }
 
 export interface ThemeJSON extends JSON {
