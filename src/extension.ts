@@ -12,7 +12,9 @@ export function activate(context: vscode.ExtensionContext) {
 			getQuickPick('themes'), { placeHolder: "Select Color Theme" }
 		).then(async (value) => {
 			let content = await vscode.workspace.fs.readFile(value!.uri);
+			console.log(content);
 			let modified = modifyTheme(content);
+			vscode.workspace.fs.writeFile(value?.extUri!, modified);
 		});
 	});
 
@@ -26,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 				let themeUri = vscode.Uri.joinPath(value!.uri, parentDirName, theme[0]);
 				let content = await vscode.workspace.fs.readFile(themeUri);
 				let modified = modifyTheme(content);
+				vscode.workspace.fs.writeFile(themeUri, modified);
 			});
 		});
 	});
@@ -43,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 				themeArr.packageJSON.contributes.themes.forEach((theme: Theme) => {
 					quickPick.push({
 						label: theme.label,
+						extUri: themeArr.extensionUri,
 						uri: vscode.Uri.file(extPath + theme.path.slice(1)),
 					});
 				});
@@ -66,15 +70,15 @@ async function getParentDirName(theme: ThemeItem) {
 
 function modifyTheme(themeFile: Uint8Array) {
 	let themeFileStr = themeFile.toString();
-	let modified = changeName(JSON.parse(removeItalics(themeFileStr)));
-	return modified;
+	let modified = changeThemeName(JSON.parse(removeItalics(themeFileStr)));
+	return Uint8Array.from(Array.from(modified).map(letter => letter.charCodeAt(0)));;
 }
 
 function removeItalics(content: string) {
 	return content.split('"italic"').join('""');
 }
 
-function changeName(content: ThemeJSON) {
+function changeThemeName(content: ThemeJSON) {
 	content.name += " - removed italics";
 	return JSON.stringify(content);
 }
